@@ -1515,7 +1515,7 @@ impl Into<Max> for Local {
     fn into(self) -> Max {
         match self {
             Local::Exact(n) => Max::Exact(n),
-            Local::Unknown => Max::LowerBound(0),
+            Local::Unknown => Max::Exact(0),
         }
     }
 }
