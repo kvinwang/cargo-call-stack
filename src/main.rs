@@ -38,6 +38,7 @@ use crate::{
 
 mod ir;
 mod thumb;
+mod ui;
 
 fn main() -> Result<(), failure::Error> {
     match run() {
@@ -80,6 +81,11 @@ fn run() -> Result<i32, failure::Error> {
                 .help("Use verbose output"),
         )
         .arg(
+            Arg::with_name("tui")
+                .long("tui")
+                .help("Use tui instead of dot"),
+        )
+        .arg(
             Arg::with_name("example")
                 .long("example")
                 .takes_value(true)
@@ -113,6 +119,7 @@ fn run() -> Result<i32, failure::Error> {
     let is_example = matches.is_present("example");
     let is_binary = matches.is_present("bin");
     let verbose = matches.is_present("verbose");
+    let use_tui = matches.is_present("tui");
     let target_flag = matches.value_of("target");
     let profile = Profile::Release;
 
@@ -1364,7 +1371,11 @@ fn run() -> Result<i32, failure::Error> {
         }
     }
 
-    dot(g, &cycles)?;
+    if use_tui {
+        ui::run(g)?;
+    } else {
+        dot(g, &cycles)?;
+    }
 
     Ok(0)
 }
@@ -1524,6 +1535,15 @@ impl Into<Max> for Local {
 enum Max {
     Exact(u64),
     LowerBound(u64),
+}
+
+impl Max {
+    fn max_value(self) -> u64 {
+        match self {
+            Max::Exact(v) => v,
+            Max::LowerBound(v) => v,
+        }
+    }
 }
 
 impl ops::Add<Local> for Max {
